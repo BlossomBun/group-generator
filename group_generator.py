@@ -7,6 +7,7 @@ Script generates a series of groups (assumed one per month) based on user-input
 of names and people per group. Individuals are not paired with the same set of 
 individuals two months in a row.
 
+EDIT: DECEMBER 01, 2024 - update to initialize with Hannah's first group.
 
 
 A better AI-generated description: 
@@ -82,20 +83,31 @@ def remove_repeated_groupings(all_groups):
             i += 1
             
     return final_groups # Return the list of unique groups
-            
-def generate_grouplist(groups):
+       
+def find_group_match(list_list_tuples, list_tuples):
+    index = 0
+    for i, group in enumerate(list_list_tuples):
+        if set(list_tuples) == set(group):
+            index = i
+    return index
+        
+
+def generate_grouplist(groups, user_group0):
     # Shuffle the pairings to create a random order  
     random.shuffle(groups)  
      
     # Initialize the ordered list of pairings  
     ordered_groups = []  
-     
-    # Add the first pairing to the ordered list  
-    ordered_groups.append(groups[0])  
-     
-    # Remove the first pairing from the list of pairings  
-    groups.remove(groups[0])  
     
+    # Returns 0 if no match
+    index = find_group_match(groups, user_group0)
+    
+    # Add the first pairing to the ordered list  
+    ordered_groups.append(groups[index])    
+    
+    # Remove the first pairing from the list of pairings  
+    groups.remove(groups[index])  
+
     # Maintain a previous group for comparison in the next iterationin spite of shuffling groups
     prev_group = ordered_groups[0] 
     
@@ -114,6 +126,7 @@ def generate_grouplist(groups):
             #  1. Group does not have any tuples shared with the previous group in the ordered list 
             #  2. Groups's odd trio does not have any individuals shared with the previous group's trio
             #  3. Groups's odd group does not contain any subsets of the previous groups's groups
+            #  4. Groups's tuples are not made up of two members from the previous groups's trio #FIXME
             if (
                  not set(group[0][:]).intersection(set(prev_group[0][:]))
                ) and (
@@ -157,6 +170,48 @@ def print_group_names(groups):
     return
 
 
+def create_list_tuples_from_user_input(people_str):
+    # Split the input string into a list of individuals  
+    group = []
+    people_group = [people.strip() for people in people_str.split(",")] 
+    
+    while people_group:
+        code_num_in_group = num_in_group
+        
+        if len(people_group) % num_in_group != 0:
+            code_num_in_group = num_in_group + 1 # add an individual to the group
+
+        subgroup = people_group[0:code_num_in_group]
+        people_group = people_group[code_num_in_group:] #check this does what it should
+        group.append(tuple(subgroup)) #add subgroup to list of group0 as a tuple
+        
+    return group
+    
+def get_user_input_group0():
+    user_group0_flag = input("Do you have an initial group? (y/n)  ").strip().lower()
+
+    if user_group0_flag == "y":
+        
+        print("List the starting groups in the format: Aaa, Bbb, Ccc, ... ")
+        print("Match spelling and capitalization with your input values.")
+        group0_str = input("The grouping will be created from: ")
+        group0 = create_list_tuples_from_user_input(group0_str)
+        
+        correct_input_flag = "n"
+        while correct_input_flag == "n":
+            print("Your group has been parsed as:")
+            print_group_names([group0])    
+            correct_input_flag = input("Is this the grouping you meant? (y/n)   ").strip().lower()
+            
+            if correct_input_flag == "n":
+                print("Okay, let's try again.")
+                group0_str = input("The grouping will be created from: ")
+                group0 = create_list_tuples_from_user_input(group0_str)
+    else:
+        group0 = []
+        
+    return group0
+
 """ MAIN """
 
 # Collect names from user input
@@ -167,10 +222,13 @@ people = [people.strip() for people in people.split(",")]
 
 # Get the number of individuals desired in each group from user input
 # Note "odd" groupings will be added as needed.
-num_in_group = input("Enter the number of desired individuals in each group: ")  
+num_in_group = input("Enter the number of desired individuals in each group: ")
 
 # Convert input into an integer
 num_in_group = int(num_in_group)
+
+# Ask if user has a starting group. If not, returns an empty list
+group0 = get_user_input_group0()
 
 # Initialize empty list to hold all possible unique groups
 all_groups = []  
@@ -182,7 +240,7 @@ generate_groups(people, num_in_group, [], all_groups)
 all_groups = remove_repeated_groupings(all_groups)
 
 # Generate the ordered list of pairings ensuring no duplicates month-to-month
-ordered_groups = generate_grouplist(all_groups) 
+ordered_groups = generate_grouplist(all_groups, group0) 
 
 # Print the names of individuals in each group
 print_group_names(ordered_groups)
