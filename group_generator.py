@@ -110,16 +110,18 @@ def generate_grouplist(groups):
            
         # Iterate over the remaining pairings  
         for group in groups:  
-          # Perform two checks  
-          #  1. Group does not have any tuples shared with the previous group in the ordered list 
-          #  2. Group's odd trio does not have any individuals shared with the previous group's trio
+            # Perform three checks  
+            #  1. Group does not have any tuples shared with the previous group in the ordered list 
+            #  2. Groups's odd trio does not have any individuals shared with the previous group's trio
+            #  3. Groups's odd group does not contain any subsets of the previous groups's groups
             if (
                  not set(group[0][:]).intersection(set(prev_group[0][:]))
-               #) and (
-               #  not set(group).intersection(set(prev_group))
+               ) and (
+                 not set(group).intersection(set(prev_group))
                ) and (
                  not any (set(x) <= set(group[0]) for x in prev_group[:])
                ): 
+                       
                     # Add the current pairing to the ordered list  
                     ordered_groups.append(group)  
                     
