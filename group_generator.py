@@ -8,6 +8,7 @@ of names and people per group. Individuals are not paired with the same set of
 individuals two months in a row.
 
 EDIT: DECEMBER 01, 2024 - update to initialize with Hannah's first group.
+                        - update to prevent two members from past trio grouping
 
 
 A better AI-generated description: 
@@ -115,24 +116,26 @@ def generate_grouplist(groups, user_group0):
     trials = 0
     
     # While there are still pairings left and not too many trials have occured 
-    while groups and trials <= 250:  
+    while groups and trials <= 700:  
         
         # Initialize a flag to indicate if a valid pairing is found  
         valid_group_found = False  
            
         # Iterate over the remaining pairings  
         for group in groups:  
-            # Perform three checks  
-            #  1. Group does not have any tuples shared with the previous group in the ordered list 
-            #  2. Groups's odd trio does not have any individuals shared with the previous group's trio
+            # Perform four checks  
+            #  1. Groups's odd trio does not have any individuals shared with the previous group's trio
+            #  2. Group does not have any tuples shared with the previous group in the ordered list 
             #  3. Groups's odd group does not contain any subsets of the previous groups's groups
-            #  4. Groups's tuples are not made up of two members from the previous groups's trio #FIXME
+            #  4. Groups's tuples are not made up of two members from the previous groups's trio
             if (
-                 not set(group[0][:]).intersection(set(prev_group[0][:]))
+             not set(group[0][:]).intersection(set(prev_group[0][:]))   #1
                ) and (
-                 not set(group).intersection(set(prev_group))
+             not set(group).intersection(set(prev_group))               #2
                ) and (
-                 not any (set(x) <= set(group[0]) for x in prev_group[:])
+             not any (set(x) <= set(group[0]) for x in prev_group[:])   #3
+               ) and (
+             not any (set(x) <= set(prev_group[0]) for x in group[:])   #4
                ): 
                        
                     # Add the current pairing to the ordered list  
